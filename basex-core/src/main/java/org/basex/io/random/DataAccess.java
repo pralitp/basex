@@ -8,14 +8,14 @@ import org.basex.util.*;
 /**
  * This class allows positional read and write access to a database file.
  *
- * @author BaseX Team 2005-13, BSD License
+ * @author BaseX Team 2005-14, BSD License
  * @author Christian Gruen
  */
 public final class DataAccess {
   /** Buffer manager. */
   private final Buffers bm = new Buffers();
   /** Reference to the data input stream. */
-  private final RandomAccessFile file;
+  private final BlockFileAccess file;
   /** File length. */
   private long len;
   /** Changed flag. */
@@ -29,9 +29,9 @@ public final class DataAccess {
    * @throws IOException I/O Exception
    */
   public DataAccess(final IOFile fl) throws IOException {
-    RandomAccessFile f = null;
+    BlockFileAccess f = null;
     try {
-      f = new RandomAccessFile(fl.file(), "rw");
+      f = BlockFileAccess.open(fl);
       len = f.length();
     } catch(final IOException ex) {
       if(f != null) f.close();
@@ -46,7 +46,7 @@ public final class DataAccess {
    */
   public synchronized void flush() {
     try {
-      for(final Buffer b : bm.all()) if(b.dirty) writeBlock(b);
+      for(final Buffer b : bm.all()) if(b.isDirty()) writeBlock(b);
       if(changed) {
         file.setLength(len);
         changed = false;
@@ -73,7 +73,7 @@ public final class DataAccess {
    * @return position in the file
    */
   public long cursor() {
-    return buffer(false).pos + off;
+    return buffer(false).getPos() + off;
   }
 
   /**
@@ -106,8 +106,7 @@ public final class DataAccess {
    * @return next byte
    */
   public int read() {
-    final Buffer bf = buffer(off == IO.BLOCKSIZE);
-    return bf.data[off++] & 0xFF;
+    return buffer(off == IO.BLOCKSIZE).read1(off++);
   }
 
   /**
@@ -215,15 +214,15 @@ public final class DataAccess {
     int ll = IO.BLOCKSIZE - off;
     final byte[] b = new byte[l];
 
-    System.arraycopy(buffer(false).data, off, b, 0, Math.min(l, ll));
+    buffer(false).copyTo(off, b, 0, Math.min(l, ll));
     if(l > ll) {
       l -= ll;
       while(l > IO.BLOCKSIZE) {
-        System.arraycopy(buffer(true).data, 0, b, ll, IO.BLOCKSIZE);
+        buffer(true).copyTo(0, b, ll, IO.BLOCKSIZE);
         ll += IO.BLOCKSIZE;
         l -= IO.BLOCKSIZE;
       }
-      System.arraycopy(buffer(true).data, 0, b, ll, l);
+      buffer(true).copyTo(0, b, ll, l);
     }
     off += l;
     return b;
@@ -240,11 +239,9 @@ public final class DataAccess {
 
     final Buffer bf = bm.current();
     try {
-      if(bf.dirty) writeBlock(bf);
-      bf.pos = b;
-      file.seek(bf.pos);
-      if(bf.pos < file.length())
-        file.readFully(bf.data, 0, (int) Math.min(len - bf.pos, IO.BLOCKSIZE));
+      if(bf.isDirty()) writeBlock(bf);
+      bf.setPos(b);
+      file.read(bf, (int) Math.min(len - b, IO.BLOCKSIZE));
     } catch(final IOException ex) {
       Util.stack(ex);
     }
@@ -274,9 +271,8 @@ public final class DataAccess {
    */
   public void write(final int b) {
     final Buffer bf = buffer(off == IO.BLOCKSIZE);
-    bf.dirty = true;
-    bf.data[off++] = (byte) b;
-    final long nl = bf.pos + off;
+    bf.set(off++, (byte) b);
+    final long nl = bf.getPos() + off;
     if(nl > len) length(nl);
   }
 
@@ -370,16 +366,14 @@ public final class DataAccess {
     int o = offset;
 
     while(o < last) {
-      final Buffer bf = buffer(off == IO.BLOCKSIZE);
       final int l = Math.min(last - o, IO.BLOCKSIZE - off);
-      System.arraycopy(buf, o, bf.data, off, l);
-      bf.dirty = true;
+      buffer(off == IO.BLOCKSIZE).copyFrom(off, buf, o, l);
       off += l;
       o += l;
     }
 
     // adjust file size if needed
-    final long nl = bm.current().pos + off;
+    final long nl = bm.current().getPos() + off;
     if(nl > len) length(nl);
   }
 
@@ -447,9 +441,7 @@ public final class DataAccess {
    * @throws IOException I/O exception
    */
   private void writeBlock(final Buffer bf) throws IOException {
-    file.seek(bf.pos);
-    file.write(bf.data);
-    bf.dirty = false;
+    file.write(bf);
   }
 
   /**
@@ -458,7 +450,7 @@ public final class DataAccess {
    * @return buffer
    */
   private Buffer buffer(final boolean next) {
-    if(next) cursor(bm.current().pos + IO.BLOCKSIZE);
+    if(next) cursor(bm.current().getPos() + IO.BLOCKSIZE);
     return bm.current();
   }
 }
