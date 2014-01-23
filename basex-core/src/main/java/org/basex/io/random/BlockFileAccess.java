@@ -1,5 +1,7 @@
 package org.basex.io.random;
 
+import static java.nio.file.StandardOpenOption.*;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -21,9 +23,20 @@ abstract class BlockFileAccess {
    * @return block-wise file access
    * @throws FileNotFoundException if given file does not exist
    */
-  public static BlockFileAccess open(IOFile fl) throws FileNotFoundException {
+  public static BlockFileAccess openRandomAccess(IOFile fl) throws FileNotFoundException {
     RandomAccessFile file = new RandomAccessFile(fl.file(), "rw");
     return new RandomAccessFileBlockFileAccess(file);
+  }
+
+  /**
+   * Open a file and create a new {@link BlockFileAccess}.
+   * @param fl file to open
+   * @return block-wise file access
+   * @throws IOException if file cannot be accessed
+   */
+  public static BlockFileAccess open(IOFile fl) throws IOException {
+    FileChannel file = FileChannel.open(fl.file().toPath(), READ, WRITE);
+    return new FileChannelBlockFileAccess(file);
   }
 
   /**

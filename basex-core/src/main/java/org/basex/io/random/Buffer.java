@@ -1,5 +1,7 @@
 package org.basex.io.random;
 
+import java.nio.ByteBuffer;
+
 /**
  * This class represents a buffer.
  *
@@ -24,6 +26,14 @@ abstract class Buffer {
    * @return byte array storing the buffer data
    */
   public byte[] getData() {
+    return null;
+  }
+
+  /**
+   * Get reference to the underlying {@link ByteBuffer}.
+   * @return byte buffer storing the data
+   */
+  public ByteBuffer getByteBuffer() {
     return null;
   }
 

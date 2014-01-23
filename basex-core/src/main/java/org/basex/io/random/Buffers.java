@@ -20,7 +20,7 @@ final class Buffers {
    * Constructor.
    */
   Buffers() {
-    for(int b = 0; b < BUFFERS; ++b) buf[b] = new ByteArrayBuffer(IO.BLOCKSIZE);
+    for(int b = 0; b < BUFFERS; ++b) buf[b] = new BlockBuffer(IO.BLOCKSIZE);
   }
 
   /**
