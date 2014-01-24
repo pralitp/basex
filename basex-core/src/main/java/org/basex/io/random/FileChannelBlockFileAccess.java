@@ -3,9 +3,6 @@ package org.basex.io.random;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.StandardOpenOption;
-
-import org.basex.util.Util;
 
 /**
  * {@link BlockFileAccess} implementation using {@link FileChannel}.
@@ -21,7 +18,7 @@ final class FileChannelBlockFileAccess extends BlockFileAccess {
    * Constructor.
    * @param f file channel
    */
-  FileChannelBlockFileAccess(FileChannel f) {
+  FileChannelBlockFileAccess(final FileChannel f) {
     file = f;
   }
 
@@ -31,7 +28,7 @@ final class FileChannelBlockFileAccess extends BlockFileAccess {
   }
 
   @Override
-  public void write(Buffer b) throws IOException {
+  public void write(final Buffer b) throws IOException {
     ByteBuffer buffer = b.getByteBuffer();
     buffer.rewind();
     file.write(buffer, b.getPos());
@@ -40,15 +37,15 @@ final class FileChannelBlockFileAccess extends BlockFileAccess {
   }
 
   @Override
-  public void read(Buffer b, int max) throws IOException {
+  public void read(final Buffer b, final int max) throws IOException {
     ByteBuffer buffer = b.getByteBuffer();
     buffer.rewind();
-    int read = file.read(buffer, b.getPos());
+    file.read(buffer, b.getPos());
     buffer.rewind();
   }
 
   @Override
-  public void read(Buffer b) throws IOException {
+  public void read(final Buffer b) throws IOException {
     ByteBuffer buffer = b.getByteBuffer();
     buffer.rewind();
     file.read(buffer, b.getPos());
@@ -61,7 +58,7 @@ final class FileChannelBlockFileAccess extends BlockFileAccess {
   }
 
   @Override
-  public void setLength(long l) throws IOException {
+  public void setLength(final long l) throws IOException {
     file.truncate(l);
   }
 
