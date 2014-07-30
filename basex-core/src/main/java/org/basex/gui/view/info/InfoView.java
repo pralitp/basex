@@ -185,6 +185,10 @@ public final class InfoView extends View implements LinkListener {
           line.startsWith(PRINTED_CC) || line.startsWith(READ_LOCKING_CC) ||
           line.startsWith(WRITE_LOCKING_CC)) {
         result.add(LI + line);
+        // [XQFS]
+      } else if(line.startsWith(DBNCREATED_CC) || line.startsWith(DBNCOPIED_CC) ||
+          line.startsWith(MEMNCREATED_CC) || line.startsWith(MEMNCOPIED_CC)) {
+        result.add(LI + line);
       } else if(line.equals(COMPILING + COL)) {
         while(++i < split.length && !split[i].isEmpty()) comp.add(split[i]);
       } else if(line.equals(QUERY + COL)) {

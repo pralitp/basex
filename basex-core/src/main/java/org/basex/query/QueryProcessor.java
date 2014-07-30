@@ -46,6 +46,11 @@ public final class QueryProcessor extends Proc {
     this.query = query;
     qc = proc(new QueryContext(ctx));
     sc = new StaticContext(ctx);
+    // [XQFS]
+    FNode.NODES.set(0);
+    FNode.COPIES.set(0);
+    DBNode.NODES.set(0);
+    DBNode.COPIES.set(0);
   }
 
   /**

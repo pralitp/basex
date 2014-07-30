@@ -676,6 +676,15 @@ public interface Text {
   /** "Query executed in %". */
   String QUERY_EXECUTED_X_X = lang("query_executed_%_%");
 
+  /** [XQFS]. */
+  String DBNCREATED_CC = "Created DBNodes" + COLS;
+  /** [XQFS]. */
+  String DBNCOPIED_CC = "Copied DBNodes" + COLS;
+  /** [XQFS]. */
+  String MEMNCREATED_CC = "Created MemNodes" + COLS;
+  /** [XQFS]. */
+  String MEMNCOPIED_CC = "Copied MemNodes" + COLS;
+
   /** Stopped info. */
   String STOPPED_AT = lang("stopped_at") + ' ';
   /** Line info. */

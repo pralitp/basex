@@ -10,6 +10,7 @@ import org.basex.io.*;
 import org.basex.query.func.*;
 import org.basex.query.util.*;
 import org.basex.query.value.item.*;
+import org.basex.query.value.node.*;
 import org.basex.query.var.*;
 import org.basex.util.*;
 import org.basex.util.list.*;
@@ -112,6 +113,11 @@ public final class QueryInfo {
       else if(writeLocked.isEmpty()) tb.add(NONE);
       else tb.add(LOCAL).add(' ').add(Arrays.toString(writeLocked.toArray()));
       tb.add(NL);
+      // [XQFS]
+      tb.add(DBNCREATED_CC + DBNode.NODES).add(NL);
+      tb.add(DBNCOPIED_CC + DBNode.COPIES).add(NL);
+      tb.add(MEMNCREATED_CC + FNode.NODES).add(NL);
+      tb.add(MEMNCOPIED_CC + FNode.COPIES).add(NL);
     }
     final IO io = qp.sc.baseIO();
     final String name = io == null ? "" : " \"" + io.name() + '"';

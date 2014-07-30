@@ -1,5 +1,7 @@
 package org.basex.query.value.node;
 
+import java.util.concurrent.atomic.*;
+
 import org.basex.query.iter.*;
 import org.basex.query.util.*;
 import org.basex.query.value.*;
@@ -14,12 +16,18 @@ import org.basex.util.*;
  * @author Christian Gruen
  */
 public abstract class FNode extends ANode {
+  /** [XQFS]. */
+  public static final AtomicInteger NODES = new AtomicInteger();
+  /** [XQFS]. */
+  public static final AtomicInteger COPIES = new AtomicInteger();
+
   /**
    * Constructor.
    * @param type item type
    */
   FNode(final NodeType type) {
     super(type);
+    NODES.incrementAndGet();
   }
 
   @Override
@@ -35,6 +43,7 @@ public abstract class FNode extends ANode {
 
   @Override
   public final ANode deepCopy() {
+    COPIES.incrementAndGet();
     return copy();
   }
 

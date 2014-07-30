@@ -4,6 +4,7 @@ import static org.basex.query.QueryText.*;
 import static org.basex.query.func.Function.*;
 
 import java.io.*;
+import java.util.concurrent.atomic.*;
 
 import org.basex.build.*;
 import org.basex.core.*;
@@ -29,6 +30,11 @@ import org.basex.util.list.*;
  * @author Christian Gruen
  */
 public class DBNode extends ANode {
+  /** [XQFS]. */
+  public static final AtomicInteger NODES = new AtomicInteger();
+  /** [XQFS]. */
+  public static final AtomicInteger COPIES = new AtomicInteger();
+
   /** Data reference. */
   public final Data data;
   /** Pre value. */
@@ -75,6 +81,7 @@ public class DBNode extends ANode {
     this.data = data;
     this.pre = pre;
     this.parent = par;
+    NODES.incrementAndGet();
   }
 
   /**
@@ -232,11 +239,13 @@ public class DBNode extends ANode {
   public final DBNode dbCopy(final MainOptions opts) {
     final MemData md = new MemData(opts);
     new DataBuilder(md).build(this);
+    COPIES.addAndGet(md.meta.size);
     return new DBNode(md).parent(parent);
   }
 
   @Override
   public final DBNode deepCopy() {
+    COPIES.incrementAndGet();
     return dbCopy(data.meta.options);
   }
 

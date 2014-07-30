@@ -16,6 +16,7 @@ import org.basex.io.serial.dot.*;
 import org.basex.query.*;
 import org.basex.query.iter.*;
 import org.basex.query.value.item.*;
+import org.basex.query.value.node.*;
 import org.basex.util.*;
 
 /**
@@ -286,7 +287,17 @@ public abstract class AQuery extends Command {
       // show XML plan
       if(options.get(MainOptions.XMLPLAN)) {
         info(NL + QUERY_PLAN + COL);
+        // [XQFS]
+        int dbcr = DBNode.NODES.get();
+        int dbco = DBNode.COPIES.get();
+        int memcr = FNode.NODES.get();
+        int memco = FNode.COPIES.get();
         info(qp.plan().serialize().toString());
+        // [XQFS]
+        DBNode.NODES.set(dbcr);
+        DBNode.COPIES.set(dbco);
+        FNode.NODES.set(memcr);
+        FNode.COPIES.set(memco);
       }
     } catch(final Exception ex) {
       Util.stack(ex);
