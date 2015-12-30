@@ -127,6 +127,13 @@ public abstract class Data {
   public abstract void close();
 
   /**
+   * Creates a clone of this data with read-only table access.  Such a clone
+   * could garauntee unsynchronized reads from the table.
+   * @return a Clone of this data with read-only table access.
+   */
+  public abstract Data createReadOnlyClone();
+
+  /**
    * Drops the specified index.
    * @param type index to be dropped
    * @param cmd calling command

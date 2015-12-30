@@ -77,6 +77,11 @@ public final class MemData extends Data {
   public void close() { }
 
   @Override
+  public Data createReadOnlyClone() {
+    return this;
+  }
+
+  @Override
   public void createIndex(final IndexType type, final Command cmd) throws IOException {
     final IndexBuilder ib;
     switch(type) {

@@ -43,6 +43,8 @@ public final class DiskData extends Data {
   private DataAccess values;
   /** Closed flag. */
   private boolean closed;
+  /** Cloned flag. */
+  private boolean cloned = false;
 
   /**
    * Default constructor, called from {@link Open#open}.
@@ -103,6 +105,24 @@ public final class DiskData extends Data {
   }
 
   /**
+   * Creates a soft clone of this DiskData.
+   */
+  DiskData(DiskData data) {
+    super(data.meta);
+    this.elemNames = data.elemNames;
+    this.attrNames = data.attrNames;
+    this.paths = data.paths;
+    this.nspaces = data.nspaces;
+    this.idmap = data.idmap;
+    this.table = data.table;
+    this.texts = data.texts;
+    this.values = data.values;
+    this.textIndex = data.textIndex;
+    this.attrIndex = data.attrIndex;
+    this.ftxtIndex = data.ftxtIndex;
+  }
+
+  /**
    * Initializes the database.
    * @throws IOException I/O exception
    */
@@ -144,11 +164,14 @@ public final class DiskData extends Data {
     try {
       write();
       table.close();
-      texts.close();
-      values.close();
-      close(IndexType.TEXT);
-      close(IndexType.ATTRIBUTE);
-      close(IndexType.FULLTEXT);
+      if(!cloned) {
+        // we made a soft clone so we can not actually close these
+        texts.close();
+        values.close();
+        close(IndexType.TEXT);
+        close(IndexType.ATTRIBUTE);
+        close(IndexType.FULLTEXT);
+      }
     } catch(final IOException ex) {
       Util.stack(ex);
     }
@@ -170,6 +193,14 @@ public final class DiskData extends Data {
       index.close();
       set(type, null);
     }
+  }
+
+  @Override
+  public Data createReadOnlyClone() {
+    DiskData clone = new DiskData(this);
+    clone.table = table.getReadOnlyTableAccess();
+    clone.cloned = true;
+    return clone;
   }
 
   @Override

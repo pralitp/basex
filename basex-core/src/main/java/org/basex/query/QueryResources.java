@@ -69,7 +69,10 @@ public final class QueryResources {
    */
   Value compile(final DBNodes nodes) {
     // assign initial context value
-    final Data data = nodes.data();
+    // if this is not an updating query we can read-only access to the data which
+    // will allow this query to run unsynchronized with the other queries reading
+    // from the same data
+    final Data data = qc.updating ? nodes.data() : nodes.data().createReadOnlyClone();
     final boolean all = nodes.all();
     final Value value = DBNodeSeq.get(new IntList(nodes.pres()), data, all, all);
 

@@ -47,6 +47,14 @@ public abstract class TableAccess {
   public abstract boolean lock(final boolean write);
 
   /**
+   * Creates a read-only access to this table.  This read-only access
+   * could then be used to read from the table concurrently with out
+   * synchronization between the readers.
+   * @return A TableAccess which provides read-only access to this instance.
+   */
+  public abstract TableAccess getReadOnlyTableAccess();
+
+  /**
    * Reads a byte value and returns it as an integer value.
    * @param p pre value
    * @param o offset

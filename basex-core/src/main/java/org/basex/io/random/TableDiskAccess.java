@@ -37,22 +37,8 @@ public final class TableDiskAccess extends TableAccess {
   /** Number of used pages. */
   private int used;
 
-  class PageData {
-    /** Buffer manager. */
-    public final Buffers bm = new Buffers();
-    /** File storing all pages. */
-    private RandomAccessFile file;
-    /** Pointer to current page. */
-    public int page = -1;
-    /** Pre value of the first entry in the current page. */
-    public int firstPre = -1;
-    /** First pre value of the next page. */
-    public int nextPre = -1;
-    /** Read lock to prevent multiple readers modifying this page */
-    public Object lock = new Object();
-  };
-
-  private final PageData currPageData = new PageData();
+  /** Struct containing all references to read from a random access file. */
+  private final TableDiskPageData currPageData = new TableDiskPageData();
 
   /**
    * Constructor.
@@ -154,10 +140,15 @@ public final class TableDiskAccess extends TableAccess {
   }
 
   @Override
+  public TableAccess getReadOnlyTableAccess() {
+    return new ReadOnlyTableDiskAccess(this);
+  }
+
+  @Override
   public int read1(final int pre, final int off) {
       return read1(pre, off, currPageData);
   }
-  int read1(final int pre, final int off, PageData pageData) {
+  int read1(final int pre, final int off, TableDiskPageData pageData) {
     synchronized(pageData.lock) {
       final int o = off + cursor(pre, pageData);
       final byte[] b = pageData.bm.current().data;
@@ -170,7 +161,7 @@ public final class TableDiskAccess extends TableAccess {
   public int read2(final int pre, final int off) {
       return read2(pre, off, currPageData);
   }
-  int read2(final int pre, final int off, PageData pageData) {
+  int read2(final int pre, final int off, TableDiskPageData pageData) {
     synchronized(pageData.lock) {
       final int o = off + cursor(pre, pageData);
       final byte[] b = pageData.bm.current().data;
@@ -182,7 +173,7 @@ public final class TableDiskAccess extends TableAccess {
   public int read4(final int pre, final int off) {
       return read4(pre, off, currPageData);
   }
-  int read4(final int pre, final int off, PageData pageData) {
+  int read4(final int pre, final int off, TableDiskPageData pageData) {
     synchronized(pageData.lock) {
       final int o = off + cursor(pre, pageData);
       final byte[] b = pageData.bm.current().data;
@@ -195,7 +186,7 @@ public final class TableDiskAccess extends TableAccess {
   public long read5(final int pre, final int off) {
       return read5(pre, off, currPageData);
   }
-  long read5(final int pre, final int off, PageData pageData) {
+  long read5(final int pre, final int off, TableDiskPageData pageData) {
     synchronized(pageData.lock) {
       final int o = off + cursor(pre, pageData);
       final byte[] b = pageData.bm.current().data;
@@ -470,7 +461,7 @@ public final class TableDiskAccess extends TableAccess {
    * @param pre pre of the entry to search for
    * @return offset of the entry in the page
    */
-  private int cursor(final int pre, PageData pageData) {
+  private int cursor(final int pre, TableDiskPageData pageData) {
     // TOOD: is this synchronized really necessary?
     synchronized(pageData.lock) {
       int fp = pageData.firstPre, np = pageData.nextPre;
@@ -502,7 +493,7 @@ public final class TableDiskAccess extends TableAccess {
    * Updates the page pointers.
    * @param p page index
    */
-  private void setPage(final int p, PageData pageData) {
+  private void setPage(final int p, TableDiskPageData pageData) {
     synchronized(pageData.lock) {
       pageData.page = p;
       pageData.firstPre = fpre(p);
@@ -514,7 +505,7 @@ public final class TableDiskAccess extends TableAccess {
    * Updates the index pointers and fetches the requested page.
    * @param p page index
    */
-  private void readPage(final int p, PageData pageData) {
+  private void readPage(final int p, TableDiskPageData pageData) {
     synchronized(pageData.lock) {
       setPage(p, pageData);
       read(page(p), pageData);
@@ -549,7 +540,7 @@ public final class TableDiskAccess extends TableAccess {
    * Reads a page from disk.
    * @param p page to fetch
    */
-  private void read(final int p, PageData pageData) {
+  private void read(final int p, TableDiskPageData pageData) {
     // TODO: is this synchronized really necessary
     synchronized(pageData.lock) {
       if(!pageData.bm.cursor(p)) return;
