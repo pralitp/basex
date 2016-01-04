@@ -164,14 +164,14 @@ public final class DiskData extends Data {
     try {
       write();
       table.close();
-      if(!cloned) {
+      //if(!cloned) {
         // we made a soft clone so we can not actually close these
         texts.close();
         values.close();
         close(IndexType.TEXT);
         close(IndexType.ATTRIBUTE);
         close(IndexType.FULLTEXT);
-      }
+      //}
     } catch(final IOException ex) {
       Util.stack(ex);
     }
@@ -199,6 +199,12 @@ public final class DiskData extends Data {
   public Data createReadOnlyClone() {
     DiskData clone = new DiskData(this);
     clone.table = table.getReadOnlyTableAccess();
+    try {
+    clone.texts = new DataAccess(meta.dbfile(DATATXT));
+    clone.values = new DataAccess(meta.dbfile(DATAATV));
+    }catch (IOException e) {
+        e.printStackTrace();
+    }
     clone.cloned = true;
     return clone;
   }
